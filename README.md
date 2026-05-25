@@ -1,33 +1,89 @@
-# PlanningPoker
+# Planning Poker
 
-This project was created using the [Ktor Project Generator](https://start.ktor.io).
-
-Here are some useful links to get you started:
-
-* [Ktor Documentation](https://ktor.io/docs/home.html)
-* [Ktor GitHub page](https://github.com/ktorio/ktor)
-* [Ktor Slack chat](https://app.slack.com/client/T09229ZC6/C0A974TJ9). [Request an invite](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up).
+A real-time planning poker app for agile teams. Create a room, share the code with your team, vote with any number, and reveal results together.
 
 ## Features
 
-Here's a list of features included in this project:
+- Create a room and share the 6-character code with your team
+- Join any room by entering its code — no accounts needed
+- Vote with any number or a custom value
+- Anyone in the room can reveal, hide, or reset votes
+- Real-time updates via WebSocket — all participants see changes instantly
+- Single-container deployment (frontend served as static files from the backend)
 
-| Name                                                              | Description                                  |
-|-------------------------------------------------------------------|----------------------------------------------|
-| [OpenAPI](https://start.ktor.io/p/io.ktor/server-openapi)         | Serves OpenAPI documentation                 |
-| [Swagger](https://start.ktor.io/p/io.ktor/server-swagger)         | Serves Swagger UI for your project           |
-| [Dependency Injection](https://start.ktor.io/p/io.ktor/server-di) | Enables dependency injection for your server |
+## Running
 
-## Building & Running
+**Build and run (production):**
 
-To build or run the project, use one of the following tasks:
-
-| Task | Description |
-|------|-------------|
-
-If the server starts successfully, you'll see the following output:
-
+```bash
+./gradlew run
 ```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
+
+Open `http://localhost:8080`.
+
+**Docker:**
+
+```bash
+./gradlew build
+docker build -t planning-poker .
+docker run -p 8080:8080 -v ./data:/app/data planning-poker
+```
+
+SQLite data is persisted in `/app/data` inside the container — mount a volume to keep it across restarts.
+
+## API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/rooms` | Create a new room, returns `{ roomId, code }` |
+| `POST` | `/rooms/{code}/join` | Join a room by code, body: `{ displayName }`, returns `{ participantId, roomId, code }` |
+| `WS` | `/rooms/{code}/ws?participantId={id}` | WebSocket connection for real-time room state |
+| `GET` | `/openapi` | OpenAPI spec |
+| `GET` | `/openapi/swagger` | Swagger UI |
+
+**WebSocket messages (client → server):**
+
+```json
+{ "type": "vote", "value": "5" }
+{ "type": "reveal" }
+{ "type": "hide" }
+{ "type": "reset" }
+```
+
+**WebSocket messages (server → client):**
+
+```json
+{
+  "type": "state",
+  "roomId": "...",
+  "code": "ABC123",
+  "votesRevealed": false,
+  "participants": [
+    { "participantId": "...", "displayName": "Alice", "hasVoted": true, "vote": null }
+  ]
+}
+```
+
+Votes are `null` until revealed. After reveal, `vote` contains the submitted value.
+
+## Tech Stack
+
+- **Backend:** Ktor 3.5, Kotlin 2.3, Netty, SQLite + Exposed ORM
+- **Frontend:** Compose HTML (Kotlin/JS), compiled to a JS bundle served as static files
+- **Build:** Gradle multi-project — `:frontend` webpack output is copied into the backend JAR at build time
+
+## Development
+
+```bash
+# Run tests
+./gradlew test
+
+# Build only (no run)
+./gradlew build
+
+# Compile frontend only
+./gradlew :frontend:compileKotlinJs
+
+# HTTP test file (IntelliJ HTTP Client or httpyac)
+# See planning-poker.http
 ```

@@ -4,12 +4,14 @@ pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
+        google()
     }
 }
 
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        google()
     }
     versionCatalogs {
         create("ktorLibs").from("io.ktor:ktor-version-catalog:3.5.0")
@@ -19,3 +21,5 @@ dependencyResolutionManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
+
+include(":frontend")

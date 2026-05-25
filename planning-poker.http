@@ -1,0 +1,69 @@
+### Base URL
+@baseUrl = http://localhost:8080
+@wsUrl   = ws://localhost:8080
+
+### ── 1. Create a room ──────────────────────────────────────────────────────
+POST {{baseUrl}}/rooms
+Accept: application/json
+
+> {%
+    client.global.set("roomCode",      response.body.code);
+    client.global.set("roomId",        response.body.roomId);
+%}
+
+### ── 2. Join the room (Alice) ───────────────────────────────────────────────
+POST {{baseUrl}}/rooms/{{roomCode}}/join
+Content-Type: application/json
+Accept: application/json
+
+{"displayName": "Alice"}
+
+> {%
+    client.global.set("participantId", response.body.participantId);
+%}
+
+### ── 3. Join the room (Bob) ─────────────────────────────────────────────────
+POST {{baseUrl}}/rooms/{{roomCode}}/join
+Content-Type: application/json
+Accept: application/json
+
+{"displayName": "Bob"}
+
+> {%
+    client.global.set("participantId2", response.body.participantId);
+%}
+
+### ── 4. Join with unknown room code → 404 ───────────────────────────────────
+POST {{baseUrl}}/rooms/XXXXXX/join
+Content-Type: application/json
+
+{"displayName": "Nobody"}
+
+### ── 5. WebSocket — connect (receives initial state on connect) ──────────────
+WEBSOCKET {{wsUrl}}/rooms/{{roomCode}}/ws?participantId={{participantId}}
+
+### ── 6. WebSocket — vote ────────────────────────────────────────────────────
+WEBSOCKET {{wsUrl}}/rooms/{{roomCode}}/ws?participantId={{participantId}}
+
+{"type": "vote", "value": "5"}
+
+### ── 7. WebSocket — reveal votes ───────────────────────────────────────────
+WEBSOCKET {{wsUrl}}/rooms/{{roomCode}}/ws?participantId={{participantId}}
+
+{"type": "reveal"}
+
+### ── 8. WebSocket — hide votes ─────────────────────────────────────────────
+WEBSOCKET {{wsUrl}}/rooms/{{roomCode}}/ws?participantId={{participantId}}
+
+{"type": "hide"}
+
+### ── 9. WebSocket — reset round ────────────────────────────────────────────
+WEBSOCKET {{wsUrl}}/rooms/{{roomCode}}/ws?participantId={{participantId}}
+
+{"type": "reset"}
+
+### ── 10. WebSocket — invalid participantId → VIOLATED_POLICY close ──────────
+WEBSOCKET {{wsUrl}}/rooms/{{roomCode}}/ws?participantId=00000000-0000-0000-0000-000000000000
+
+### ── 11. WebSocket — non-existent room → VIOLATED_POLICY close ──────────────
+WEBSOCKET {{wsUrl}}/rooms/XXXXXX/ws?participantId={{participantId}}

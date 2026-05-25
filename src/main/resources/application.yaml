@@ -3,6 +3,10 @@ ktor:
     port: 8080
   application:
     modules:
+      - com.example.DatabaseKt.configureDatabase
       - com.example.HttpKt.configureHttp
       - com.example.DIKt.configureDependencyInjection
       - com.example.RoutingKt.configureRouting
+
+database:
+  url: "jdbc:sqlite:./data/planningpoker.db"

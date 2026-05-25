@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Kotlin/JS node modules and webpack cache
+kotlin-js-store/
+node_modules/
+
+# SQLite data
+data/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,6 +1,11 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     alias(ktorLibs.plugins.ktor)
+    // Declare frontend plugins at root so Gradle resolves their versions before subprojects apply them
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.compose.multiplatform) apply false
+    alias(libs.plugins.compose.compiler) apply false
 }
 
 group = "com.example"
@@ -13,6 +18,7 @@ application {
 kotlin {
     jvmToolchain(21)
 }
+
 dependencies {
     implementation(ktorLibs.server.config.yaml)
     implementation(ktorLibs.server.core)
@@ -21,8 +27,25 @@ dependencies {
     implementation(ktorLibs.server.openapi)
     implementation(ktorLibs.server.routingOpenapi)
     implementation(ktorLibs.server.swagger)
+    implementation(ktorLibs.server.websockets)
+    implementation(ktorLibs.server.contentNegotiation)
+    implementation(ktorLibs.server.cors)
+    implementation(ktorLibs.serialization.kotlinx.json)
     implementation(libs.logback.classic)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.sqlite.jdbc)
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
+}
+
+val copyFrontendDist by tasks.registering(Copy::class) {
+    dependsOn(":frontend:jsBrowserProductionWebpack")
+    from(project(":frontend").layout.buildDirectory.dir("dist/js/productionExecutable"))
+    into(layout.buildDirectory.dir("resources/main/static"))
+}
+
+tasks.named("processResources") {
+    dependsOn(copyFrontendDist)
 }

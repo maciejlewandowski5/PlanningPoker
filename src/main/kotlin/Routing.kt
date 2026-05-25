@@ -1,13 +1,18 @@
 package com.example
 
 import io.ktor.server.application.*
-import io.ktor.server.response.*
+import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
+    val repo = RoomRepository()
+    val registry = SessionRegistry()
+    val service = RoomService(repo, registry)
     routing {
-        get("/") {
-            call.respondText("Hello, World!")
+        staticResources("/", "static") {
+            default("index.html")
         }
+        roomRoutes(repo, service)
+        webSocketRoutes(repo, service, registry)
     }
 }
