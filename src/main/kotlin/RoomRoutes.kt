@@ -8,7 +8,8 @@ import io.ktor.server.routing.*
 
 fun Route.roomRoutes(repo: RoomRepository, service: RoomService) {
     post("/rooms") {
-        val (roomId, code) = service.createRoom()
+        val body = try { call.receive<CreateRoomRequest>() } catch (_: Exception) { CreateRoomRequest() }
+        val (roomId, code) = service.createRoom(body.votingScale)
         call.respond(HttpStatusCode.Created, CreateRoomResponse(roomId, code))
     }
 

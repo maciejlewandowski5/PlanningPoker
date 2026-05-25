@@ -18,6 +18,6 @@ fun Application.configureDatabase() {
 
     Database.connect(url, driver = "org.sqlite.JDBC")
     transaction {
-        SchemaUtils.create(Rooms, Participants, Votes)
+        SchemaUtils.createMissingTablesAndColumns(Rooms, Participants, Votes)
     }
 }

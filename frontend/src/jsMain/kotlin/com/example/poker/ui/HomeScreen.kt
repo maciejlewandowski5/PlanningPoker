@@ -13,11 +13,19 @@ import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
+private val SCALE_PRESETS = listOf(
+    "Fibonacci" to "1,2,3,5,8,13,21,40,100,?",
+    "T-shirt"   to "XS,S,M,L,XL,XXL",
+    "Days"      to "1,2,3,5,7,10,14,21"
+)
+private val DEFAULT_SCALE = SCALE_PRESETS[0].second
+
 @Composable
 fun HomeScreen(scope: kotlinx.coroutines.CoroutineScope, onNavigate: (Screen) -> Unit) {
     var joinCode by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
+    var votingScale by remember { mutableStateOf(DEFAULT_SCALE) }
 
     PageWrapper {
         H1({
@@ -42,13 +50,71 @@ fun HomeScreen(scope: kotlinx.coroutines.CoroutineScope, onNavigate: (Screen) ->
                 }
             }) { Text("Start a new session") }
 
+            // Voting scale presets
+            P({
+                style {
+                    fontSize(13.px)
+                    property("font-weight", "600")
+                    color(Color(Colors.textPrimary))
+                    marginBottom(Spacing.sm)
+                }
+            }) { Text("Voting scale") }
+
+            Div({
+                style {
+                    display(DisplayStyle.Flex)
+                    gap(Spacing.sm)
+                    marginBottom(Spacing.sm)
+                    flexWrap(FlexWrap.Wrap)
+                }
+            }) {
+                SCALE_PRESETS.forEach { (name, values) ->
+                    val selected = votingScale == values
+                    Button({
+                        onClick { votingScale = values }
+                        style {
+                            padding(6.px, 12.px)
+                            borderRadius(6.px)
+                            fontSize(13.px)
+                            property("font-weight", "600")
+                            cursor("pointer")
+                            if (selected) {
+                                backgroundColor(Color(Colors.primary))
+                                color(Color(Colors.surface))
+                                property("border", "none")
+                            } else {
+                                background("transparent")
+                                color(Color(Colors.textSecondary))
+                                border {
+                                    width(1.px)
+                                    style(LineStyle.Solid)
+                                    color = Color(Colors.border)
+                                }
+                            }
+                        }
+                    }) { Text(name) }
+                }
+            }
+
+            Input(type = InputType.Text) {
+                value(votingScale)
+                placeholder("e.g. 1,2,3,5,8,13")
+                onInput { votingScale = it.value }
+                style {
+                    inputStyle()
+                    marginBottom(Spacing.md)
+                    fontSize(13.px)
+                }
+            }
+
             Button({
                 onClick {
+                    val scale = votingScale.trim().ifBlank { DEFAULT_SCALE }
                     loading = true
                     error = null
                     scope.launch {
                         try {
-                            val room = createRoom()
+                            val room = createRoom(scale)
                             onNavigate(Screen.Join(room.code))
                         } catch (e: Exception) {
                             error = "Could not create room. Is the server running?"
@@ -145,7 +211,7 @@ private fun PageWrapper(content: @Composable () -> Unit) {
         Div({
             style {
                 width(100.percent)
-                maxWidth(400.px)
+                maxWidth(420.px)
             }
         }) { content() }
     }

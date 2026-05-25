@@ -3,6 +3,9 @@ package com.example.poker.api
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class CreateRoomRequest(val votingScale: String)
+
+@Serializable
 data class CreateRoomResponse(val roomId: String, val code: String)
 
 @Serializable
@@ -25,5 +28,6 @@ data class RoomState(
     val roomId: String,
     val code: String,
     val votesRevealed: Boolean,
-    val participants: List<ParticipantState>
+    val participants: List<ParticipantState>,
+    val votingScale: String = "1,2,3,5,8,13,21,40,100,?"
 )

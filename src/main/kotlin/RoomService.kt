@@ -7,7 +7,7 @@ class RoomService(
     private val repo: RoomRepository,
     private val registry: SessionRegistry
 ) {
-    suspend fun createRoom(): Pair<String, String> = repo.createRoom()
+    suspend fun createRoom(votingScale: String): Pair<String, String> = repo.createRoom(votingScale)
 
     suspend fun joinRoom(roomId: String, displayName: String): String =
         repo.addParticipant(roomId, displayName)

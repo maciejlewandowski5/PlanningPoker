@@ -14,7 +14,7 @@ class RoomRepository {
 
     private fun generateCode() = (1..6).map { chars.random() }.joinToString("")
 
-    suspend fun createRoom(): Pair<String, String> = withContext(Dispatchers.IO) {
+    suspend fun createRoom(votingScale: String): Pair<String, String> = withContext(Dispatchers.IO) {
         transaction {
             val id = UUID.randomUUID().toString()
             var code: String
@@ -26,7 +26,8 @@ class RoomRepository {
                 it[Rooms.id] = id
                 it[Rooms.code] = code
                 it[createdAt] = System.currentTimeMillis()
-                it[votesRevealed] = false
+                it[Rooms.votesRevealed] = false
+                it[Rooms.votingScale] = votingScale
             }
             Pair(id, code)
         }
@@ -113,7 +114,8 @@ class RoomRepository {
                 roomId = room[Rooms.id],
                 code = room[Rooms.code],
                 votesRevealed = revealed,
-                participants = participants
+                participants = participants,
+                votingScale = room[Rooms.votingScale]
             )
         }
     }

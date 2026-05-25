@@ -28,8 +28,9 @@ private suspend fun fetchJson(url: String, method: String, body: String? = null)
     return response.text().await()
 }
 
-suspend fun createRoom(): CreateRoomResponse {
-    val text = fetchJson("/rooms", "POST")
+suspend fun createRoom(votingScale: String): CreateRoomResponse {
+    val body = json.encodeToString(CreateRoomRequest(votingScale))
+    val text = fetchJson("/rooms", "POST", body)
     return json.decodeFromString(text)
 }
 

@@ -7,6 +7,7 @@ object Rooms : Table("rooms") {
     val code = varchar("code", 6).uniqueIndex()
     val createdAt = long("created_at")
     val votesRevealed = bool("votes_revealed").default(false)
+    val votingScale = varchar("voting_scale", 255).default("1,2,3,5,8,13,21,40,100,?")
     override val primaryKey = PrimaryKey(id)
 }
 

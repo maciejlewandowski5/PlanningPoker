@@ -20,7 +20,6 @@ import org.w3c.dom.MessageEvent
 import org.w3c.dom.WebSocket
 
 private val json = Json { ignoreUnknownKeys = true }
-private val QUICK_VOTES = listOf("1", "2", "3", "5", "8", "13", "21", "40", "100", "?")
 
 @Composable
 fun RoomScreen(
@@ -163,6 +162,26 @@ fun RoomScreen(
                     }
                 }) { Text("Connecting…") }
             } else {
+                // Action bar — at the top of the content area
+                Div({
+                    style {
+                        display(DisplayStyle.Flex)
+                        gap(Spacing.md)
+                        marginBottom(Spacing.lg)
+                    }
+                }) {
+                    if (state.votesRevealed) {
+                        ActionButton("Hide Votes", Colors.primary) { send("hide") }
+                    } else {
+                        ActionButton("Reveal Votes", Colors.primary) { send("reveal") }
+                    }
+                    ActionButton("Reset Round", Colors.danger) {
+                        myVote = null
+                        customVote = ""
+                        send("reset")
+                    }
+                }
+
                 // Participants / Results
                 Section({
                     style {
@@ -227,13 +246,17 @@ fun RoomScreen(
 
                 // Voting controls (hidden when votes are revealed)
                 if (!state.votesRevealed) {
+                    val quickVotes = state.votingScale
+                        .split(",")
+                        .map { it.trim() }
+                        .filter { it.isNotBlank() }
+
                     Section({
                         style {
                             backgroundColor(Color(Colors.surface))
                             borderRadius(12.px)
                             padding(Spacing.lg)
                             property("box-shadow", "0 1px 3px rgba(0,0,0,0.08)")
-                            marginBottom(Spacing.lg)
                         }
                     }) {
                         P({
@@ -255,7 +278,7 @@ fun RoomScreen(
                                 marginBottom(Spacing.md)
                             }
                         }) {
-                            QUICK_VOTES.forEach { v ->
+                            quickVotes.forEach { v ->
                                 VoteButton(
                                     label = v,
                                     selected = myVote == v,
@@ -316,25 +339,6 @@ fun RoomScreen(
                                 }
                             }) { Text("Submit") }
                         }
-                    }
-                }
-
-                // Action bar
-                Div({
-                    style {
-                        display(DisplayStyle.Flex)
-                        gap(Spacing.md)
-                    }
-                }) {
-                    if (state.votesRevealed) {
-                        ActionButton("Hide Votes", Colors.primary) { send("hide") }
-                    } else {
-                        ActionButton("Reveal Votes", Colors.primary) { send("reveal") }
-                    }
-                    ActionButton("Reset Round", Colors.danger) {
-                        myVote = null
-                        customVote = ""
-                        send("reset")
                     }
                 }
             }
