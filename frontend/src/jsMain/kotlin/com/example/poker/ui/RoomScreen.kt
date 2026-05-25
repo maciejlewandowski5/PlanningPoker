@@ -1,14 +1,17 @@
 package com.example.poker.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.poker.api.RoomState
 import com.example.poker.ui.components.*
 import com.example.poker.ws.sendMessage
+import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -33,6 +36,24 @@ fun RoomScreen(
     var myVote by remember { mutableStateOf<String?>(null) }
     var customVote by remember { mutableStateOf("") }
     var ws by remember { mutableStateOf<WebSocket?>(null) }
+    var copied by remember { mutableStateOf(false) }
+
+    // Inject keyframes once for the lifetime of this screen
+    DisposableEffect(Unit) {
+        val styleEl = document.createElement("style")
+        styleEl.asDynamic().textContent = """
+            @keyframes pp-scale-in {
+                from { opacity: 0; transform: scale(0.96); }
+                to   { opacity: 1; transform: scale(1);    }
+            }
+            @keyframes pp-fade-in-up {
+                from { opacity: 0; transform: translateY(8px); }
+                to   { opacity: 1; transform: translateY(0px); }
+            }
+        """.trimIndent()
+        document.head?.appendChild(styleEl)
+        onDispose { try { document.head?.removeChild(styleEl) } catch (_: Exception) {} }
+    }
 
     fun buildWsUrl(): String {
         val loc = window.location
@@ -101,7 +122,7 @@ fun RoomScreen(
                 style {
                     display(DisplayStyle.Flex)
                     alignItems(AlignItems.Center)
-                    gap(Spacing.md)
+                    gap(Spacing.sm)
                 }
             }) {
                 if (!connected) {
@@ -126,6 +147,31 @@ fun RoomScreen(
                         property("letter-spacing", "0.05em")
                     }
                 }) { Text("Room: $code") }
+                // Copy room code button
+                Button({
+                    onClick {
+                        scope.launch {
+                            try {
+                                window.navigator.asDynamic().clipboard.writeText(code)
+                                copied = true
+                                delay(2000)
+                                copied = false
+                            } catch (_: Exception) {}
+                        }
+                    }
+                    attr("title", if (copied) "Copied!" else "Copy room code")
+                    style {
+                        background("transparent")
+                        property("border", "none")
+                        color(Color(if (copied) Colors.success else Colors.textSecondary))
+                        cursor("pointer")
+                        fontSize(15.px)
+                        padding(4.px, 6.px)
+                        borderRadius(4.px)
+                        property("transition", "color 0.15s ease")
+                        property("line-height", "1")
+                    }
+                }) { Text(if (copied) "✓" else "⎘") }
                 Button({
                     onClick {
                         ws?.close()
@@ -162,7 +208,7 @@ fun RoomScreen(
                     }
                 }) { Text("Connecting…") }
             } else {
-                // Action bar — at the top of the content area
+                // Action bar at the top
                 Div({
                     style {
                         display(DisplayStyle.Flex)
@@ -205,19 +251,23 @@ fun RoomScreen(
                         Text(if (state.votesRevealed) "Results" else "Participants (${state.participants.size})")
                     }
 
-                    Div({
-                        style {
-                            display(DisplayStyle.Flex)
-                            flexWrap(FlexWrap.Wrap)
-                            gap(Spacing.md)
-                        }
-                    }) {
-                        state.participants.forEach { p ->
-                            ParticipantCard(
-                                participant = p,
-                                isMe = p.participantId == participantId,
-                                votesRevealed = state.votesRevealed
-                            )
+                    // key() forces DOM recreation on state flip → CSS animation replays
+                    key(state.votesRevealed) {
+                        Div({
+                            style {
+                                display(DisplayStyle.Flex)
+                                flexWrap(FlexWrap.Wrap)
+                                gap(Spacing.md)
+                                property("animation", "pp-scale-in 0.2s ease-out")
+                            }
+                        }) {
+                            state.participants.forEach { p ->
+                                ParticipantCard(
+                                    participant = p,
+                                    isMe = p.participantId == participantId,
+                                    votesRevealed = state.votesRevealed
+                                )
+                            }
                         }
                     }
 
@@ -233,6 +283,7 @@ fun RoomScreen(
                                     gap(Spacing.lg)
                                     color(Color(Colors.textSecondary))
                                     fontSize(14.px)
+                                    property("animation", "pp-fade-in-up 0.18s ease-out")
                                 }
                             }) {
                                 val avg = numbers.average().asDynamic().toFixed(1) as String
@@ -244,7 +295,7 @@ fun RoomScreen(
                     }
                 }
 
-                // Voting controls (hidden when votes are revealed)
+                // Voting controls — conditionally rendered, so entrance animation plays on reset
                 if (!state.votesRevealed) {
                     val quickVotes = state.votingScale
                         .split(",")
@@ -257,6 +308,7 @@ fun RoomScreen(
                             borderRadius(12.px)
                             padding(Spacing.lg)
                             property("box-shadow", "0 1px 3px rgba(0,0,0,0.08)")
+                            property("animation", "pp-fade-in-up 0.2s ease-out")
                         }
                     }) {
                         P({
@@ -360,6 +412,7 @@ private fun ActionButton(label: String, bgColor: String, onClick: () -> Unit) {
             property("font-weight", "600")
             cursor("pointer")
             flex(1)
+            property("transition", "opacity 0.1s ease")
         }
     }) { Text(label) }
 }
