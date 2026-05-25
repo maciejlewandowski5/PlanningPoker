@@ -40,12 +40,9 @@ dependencies {
     testImplementation(ktorLibs.server.testHost)
 }
 
-val copyFrontendDist by tasks.registering(Copy::class) {
+tasks.named<ProcessResources>("processResources") {
     dependsOn(":frontend:jsBrowserProductionWebpack")
-    from(project(":frontend").layout.buildDirectory.dir("dist/js/productionExecutable"))
-    into(layout.buildDirectory.dir("resources/main/static"))
-}
-
-tasks.named("processResources") {
-    dependsOn(copyFrontendDist)
+    from(project(":frontend").layout.buildDirectory.dir("dist/js/productionExecutable")) {
+        into("static")
+    }
 }
