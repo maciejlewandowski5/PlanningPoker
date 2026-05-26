@@ -1,0 +1,11 @@
+build/
+**/build/
+.gradle/
+**/.gradle/
+.idea/
+kotlin-js-store/
+node_modules/
+data/
+*.db
+.DS_Store
+Thumbs.db
