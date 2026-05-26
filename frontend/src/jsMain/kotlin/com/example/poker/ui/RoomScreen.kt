@@ -51,14 +51,13 @@ fun RoomScreen(
                 from { opacity: 0; transform: translateY(8px); }
                 to   { opacity: 1; transform: translateY(0px); }
             }
-            @keyframes pp-poll-bar {
-                from { transform: scaleX(0); }
-                to   { transform: scaleX(1); }
+            @keyframes pp-poll-spin {
+                to { transform: rotate(360deg); }
             }
-            @keyframes pp-poll-pulse {
-                0%   { opacity: 0.5; }
-                50%  { opacity: 1;   }
-                100% { opacity: 0.5; }
+            @keyframes pp-loading-slide {
+                0%   { left: -35%; width: 35%; }
+                60%  { left: 60%;  width: 35%; }
+                100% { left: 100%; width: 0%;  }
             }
         """.trimIndent()
         document.head?.appendChild(styleEl)
@@ -67,6 +66,7 @@ fun RoomScreen(
 
     var usePolling by remember { mutableStateOf(false) }
     var pollCycle by remember { mutableStateOf(0) }
+    var pendingAction by remember { mutableStateOf(false) }
     val pollIntervalMs = 2000
 
     // SSE connection — with automatic fallback to polling when SSE is unstable
@@ -89,6 +89,7 @@ fun RoomScreen(
                     "state" -> {
                         val state = json.decodeFromString<RoomState>(raw)
                         roomState = state
+                        pendingAction = false
                         if (state.votesRevealed) {
                             myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
                         }
@@ -101,6 +102,7 @@ fun RoomScreen(
                                     if (it.participantId == pid) it.copy(hasVoted = true) else it
                                 }
                             )
+                            pendingAction = false
                         }
                     }
                     else -> println("[SSE] unknown message type: ${elem["type"]}")
@@ -156,6 +158,7 @@ fun RoomScreen(
                     val state = json.decodeFromString<RoomState>(raw)
                     roomState = state
                     connected = true
+                    pendingAction = false
                     pollCycle++
                     if (state.votesRevealed) {
                         myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
@@ -179,6 +182,7 @@ fun RoomScreen(
     }
 
     fun send(type: String, value: String? = null) {
+        pendingAction = true
         scope.launch {
             try {
                 val body = if (value != null)
@@ -244,15 +248,33 @@ fun RoomScreen(
                         Text("⚠ Reconnecting…")
                     }
                 } else if (usePolling) {
-                    Span({
+                    Div({
                         style {
-                            fontSize(11.px)
-                            color(Color(Colors.textSecondary))
-                            property("font-weight", "500")
-                            property("animation", "pp-poll-pulse 2s ease-in-out infinite")
+                            display(DisplayStyle.Flex)
+                            alignItems(AlignItems.Center)
+                            gap(4.px)
                         }
                     }) {
-                        Text("● polling")
+                        key(pollCycle) {
+                            Div({
+                                style {
+                                    width(12.px)
+                                    height(12.px)
+                                    borderRadius(50.percent)
+                                    property("border", "2px solid ${Colors.border}")
+                                    property("border-top-color", Colors.primary)
+                                    property("animation", "pp-poll-spin ${pollIntervalMs}ms linear")
+                                    property("box-sizing", "border-box")
+                                }
+                            })
+                        }
+                        Span({
+                            style {
+                                fontSize(11.px)
+                                color(Color(Colors.textSecondary))
+                                property("font-weight", "500")
+                            }
+                        }) { Text("polling") }
                     }
                 }
                 Span({
@@ -304,28 +326,24 @@ fun RoomScreen(
             }
         }
 
-        // Polling progress bar — animates from 0→100% width over the poll interval
-        if (usePolling && connected) {
+        // Action loading bar — slides across while waiting for state to update
+        if (pendingAction) {
             Div({
                 style {
                     width(100.percent)
-                    height(3.px)
-                    backgroundColor(Color(Colors.border))
+                    height(2.px)
                     property("overflow", "hidden")
+                    property("position", "relative")
                 }
             }) {
-                key(pollCycle) {
-                    Div({
-                        style {
-                            height(100.percent)
-                            width(100.percent)
-                            backgroundColor(Color(Colors.primary))
-                            property("transform-origin", "left")
-                            property("animation", "pp-poll-bar ${pollIntervalMs}ms linear")
-                            property("opacity", "0.5")
-                        }
-                    })
-                }
+                Div({
+                    style {
+                        property("position", "absolute")
+                        height(100.percent)
+                        backgroundColor(Color(Colors.primary))
+                        property("animation", "pp-loading-slide 1s ease-in-out infinite")
+                    }
+                })
             }
         }
 
