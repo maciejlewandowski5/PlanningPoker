@@ -22,8 +22,7 @@ import org.w3c.fetch.RequestInit
 
 private val json = Json { ignoreUnknownKeys = true }
 
-// mBank-inspired palette: greens, teals, mints
-private val POLL_COLORS = listOf("#00a651", "#00c853", "#26c6da", "#00897b", "#69f0ae", "#00bfa5")
+private val POLL_COLORS = listOf("#e41609", "#f49100", "#cd0b16", "#007ac4", "#21a035")
 
 @Composable
 fun RoomScreen(
