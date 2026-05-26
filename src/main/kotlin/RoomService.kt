@@ -14,6 +14,11 @@ class RoomService(
     suspend fun joinRoom(roomId: String, displayName: String): String =
         repo.addParticipant(roomId, displayName)
 
+    suspend fun leave(roomId: String, participantId: String) {
+        repo.removeParticipant(participantId)
+        broadcastState(roomId)
+    }
+
     suspend fun vote(roomId: String, participantId: String, value: String) {
         repo.upsertVote(participantId, value)
         registry.broadcast(roomId, broadcastJson.encodeToString(VotedDelta(participantId = participantId)))

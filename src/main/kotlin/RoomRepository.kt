@@ -58,6 +58,13 @@ class RoomRepository {
         }
     }
 
+    suspend fun removeParticipant(participantId: String) = withContext(Dispatchers.IO) {
+        transaction {
+            Votes.deleteWhere { Votes.participantId eq participantId }
+            Participants.deleteWhere { Participants.id eq participantId }
+        }
+    }
+
     suspend fun upsertVote(participantId: String, voteValue: String) = withContext(Dispatchers.IO) {
         transaction {
             Votes.upsert {

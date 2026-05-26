@@ -31,6 +31,17 @@ fun Route.roomRoutes(repo: RoomRepository, service: RoomService) {
 }
 
 fun Route.sseRoutes(repo: RoomRepository, service: RoomService, registry: SessionRegistry) {
+    post("/rooms/{code}/leave") {
+        val code = call.parameters["code"]!!
+        val participantId = call.request.queryParameters["participantId"]
+            ?: return@post call.respond(HttpStatusCode.BadRequest, "participantId required")
+        val room = repo.findRoomByCode(code)
+            ?: return@post call.respond(HttpStatusCode.NotFound, "Room not found")
+        val roomId = room[Rooms.id]
+        service.leave(roomId, participantId)
+        call.respond(HttpStatusCode.NoContent)
+    }
+
     post("/rooms/{code}/action") {
         val code = call.parameters["code"]!!
         val participantId = call.request.queryParameters["participantId"]

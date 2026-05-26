@@ -22,7 +22,8 @@ import org.w3c.fetch.RequestInit
 
 private val json = Json { ignoreUnknownKeys = true }
 
-private val POLL_COLORS = listOf("#4f46e5", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4")
+// mBank-inspired palette: greens, teals, mints
+private val POLL_COLORS = listOf("#00a651", "#00c853", "#26c6da", "#00897b", "#69f0ae", "#00bfa5")
 
 @Composable
 fun RoomScreen(
@@ -52,7 +53,12 @@ fun RoomScreen(
                 to   { opacity: 1; transform: translateY(0px); }
             }
             @keyframes pp-poll-spin {
-                to { transform: rotate(360deg); }
+                0%   { transform: rotate(0deg);   }
+                100% { transform: rotate(360deg); }
+            }
+            @keyframes pp-poll-glow {
+                0%, 100% { opacity: 0.4; transform: scale(1);    }
+                50%      { opacity: 1;   transform: scale(1.15); }
             }
             @keyframes pp-loading-slide {
                 0%   { left: -35%; width: 35%; }
@@ -115,6 +121,18 @@ fun RoomScreen(
         }
     }
 
+    fun leave() {
+        scope.launch {
+            try {
+                window.fetch(
+                    "/rooms/$code/leave?participantId=$participantId",
+                    RequestInit(method = "POST")
+                ).await()
+            } catch (_: Exception) {}
+            onLeave()
+        }
+    }
+
     Div({
         style {
             minHeight(100.vh)
@@ -161,20 +179,63 @@ fun RoomScreen(
                         Text("Connecting…")
                     }
                 } else {
+                    // Polling indicator — spinner with glow + label
                     val spinColor = POLL_COLORS[pollCycle % POLL_COLORS.size]
-                    key(pollCycle) {
+                    Div({
+                        style {
+                            display(DisplayStyle.Flex)
+                            alignItems(AlignItems.Center)
+                            gap(6.px)
+                        }
+                    }) {
+                        // Outer glow ring + inner spinner
                         Div({
                             style {
-                                width(12.px)
-                                height(12.px)
-                                borderRadius(50.percent)
-                                property("border", "2px solid ${Colors.border}")
-                                property("border-top-color", spinColor)
-                                property("animation", "pp-poll-spin ${pollIntervalMs}ms linear")
-                                property("box-sizing", "border-box")
-                                property("transition", "border-top-color 0.3s ease")
+                                width(22.px)
+                                height(22.px)
+                                property("position", "relative")
+                                display(DisplayStyle.Flex)
+                                alignItems(AlignItems.Center)
+                                justifyContent(JustifyContent.Center)
                             }
-                        })
+                        }) {
+                            // Glow ring (pulsing behind the spinner)
+                            key(pollCycle) {
+                                Div({
+                                    style {
+                                        property("position", "absolute")
+                                        property("inset", "0")
+                                        borderRadius(50.percent)
+                                        property("background", spinColor)
+                                        property("opacity", "0.3")
+                                        property("animation", "pp-poll-glow ${pollIntervalMs}ms ease-in-out")
+                                        property("filter", "blur(3px)")
+                                    }
+                                })
+                            }
+                            // Spinner ring
+                            key(pollCycle) {
+                                Div({
+                                    style {
+                                        width(18.px)
+                                        height(18.px)
+                                        borderRadius(50.percent)
+                                        property("border", "2.5px solid ${Colors.border}")
+                                        property("border-top-color", spinColor)
+                                        property("border-right-color", spinColor)
+                                        property("animation", "pp-poll-spin ${pollIntervalMs}ms cubic-bezier(0.4, 0, 0.2, 1)")
+                                        property("box-sizing", "border-box")
+                                    }
+                                })
+                            }
+                        }
+                        Span({
+                            style {
+                                fontSize(11.px)
+                                color(Color(Colors.textSecondary))
+                                property("font-weight", "500")
+                            }
+                        }) { Text("polling") }
                     }
                 }
 
@@ -218,13 +279,14 @@ fun RoomScreen(
                 }
 
                 Button({
-                    onClick { onLeave() }
+                    onClick { leave() }
                     style {
                         background("transparent")
                         property("border", "none")
-                        color(Color(Colors.textSecondary))
+                        color(Color(Colors.danger))
                         cursor("pointer")
                         fontSize(13.px)
+                        property("font-weight", "600")
                     }
                 }) { Text("Leave") }
             }
