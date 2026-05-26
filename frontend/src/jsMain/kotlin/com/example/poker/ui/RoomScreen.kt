@@ -56,19 +56,24 @@ fun RoomScreen(
         onDispose { try { document.head?.removeChild(styleEl) } catch (_: Exception) {} }
     }
 
-    // SSE connection — EventSource auto-reconnects on disconnect
+    var usePolling by remember { mutableStateOf(false) }
+
+    // SSE connection — with fallback to polling if SSE doesn't connect in time
     DisposableEffect(code, participantId) {
-        val url = "/rooms/$code/events?participantId=$participantId"
-        println("[SSE] connecting → $url")
-        val es = EventSource(url)
-        es.onopen = {
-            println("[SSE] connected")
-            connected = true
-            null
-        }
-        es.onmessage = { event: MessageEvent ->
-            val raw = event.data.toString()
-            println("[SSE] message: ${raw.take(120)}")
+        var es: EventSource? = null
+        var sseConnected = false
+
+        // Fallback: if SSE hasn't connected after 3s, switch to polling
+        val fallbackTimer = window.setTimeout({
+            if (!sseConnected) {
+                println("[SSE] connection timed out — falling back to polling")
+                es?.close()
+                usePolling = true
+                connected = true
+            }
+        }, 3000)
+
+        fun handleMessage(raw: String) {
             try {
                 val elem = Json.parseToJsonElement(raw).jsonObject
                 when (elem["type"]?.jsonPrimitive?.content) {
@@ -94,14 +99,63 @@ fun RoomScreen(
             } catch (e: Exception) {
                 println("[SSE] parse error: $e  raw=$raw")
             }
+        }
+
+        val url = "/rooms/$code/events?participantId=$participantId"
+        println("[SSE] connecting → $url")
+        val source = EventSource(url)
+        es = source
+        source.onopen = {
+            println("[SSE] connected")
+            sseConnected = true
+            window.clearTimeout(fallbackTimer)
+            connected = true
             null
         }
-        es.onerror = {
-            println("[SSE] error / disconnected (readyState=${es.readyState})")
+        source.onmessage = { event: MessageEvent ->
+            handleMessage(event.data.toString())
+            null
+        }
+        source.onerror = {
+            println("[SSE] error / disconnected (readyState=${source.readyState})")
             connected = false
             null
         }
-        onDispose { es.close() }
+        onDispose {
+            window.clearTimeout(fallbackTimer)
+            source.close()
+        }
+    }
+
+    // Polling fallback — fetches room state every 2s when SSE is unavailable
+    DisposableEffect(usePolling, code, participantId) {
+        var pollingTimer: Int? = null
+        if (usePolling) {
+            fun poll() {
+                scope.launch {
+                    try {
+                        val resp = window.fetch(
+                            "/rooms/$code/state?participantId=$participantId"
+                        ).await()
+                        if (resp.ok) {
+                            val raw = resp.text().await()
+                            val state = json.decodeFromString<RoomState>(raw)
+                            roomState = state
+                            connected = true
+                            if (state.votesRevealed) {
+                                myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
+                            }
+                        }
+                    } catch (e: Exception) {
+                        println("[Poll] error: $e")
+                        connected = false
+                    }
+                }
+            }
+            poll()
+            pollingTimer = window.setInterval({ poll() }, 2000)
+        }
+        onDispose { pollingTimer?.let { window.clearInterval(it) } }
     }
 
     fun send(type: String, value: String? = null) {

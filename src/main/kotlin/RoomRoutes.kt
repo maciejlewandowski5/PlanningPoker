@@ -49,10 +49,25 @@ fun Route.sseRoutes(repo: RoomRepository, service: RoomService, registry: Sessio
         call.respond(HttpStatusCode.NoContent)
     }
 
+    get("/rooms/{code}/state") {
+        val code = call.parameters["code"]!!
+        val participantId = call.request.queryParameters["participantId"]
+            ?: return@get call.respond(HttpStatusCode.BadRequest, "participantId required")
+        val room = repo.findRoomByCode(code)
+            ?: return@get call.respond(HttpStatusCode.NotFound, "Room not found")
+        val roomId = room[Rooms.id]
+        val participant = repo.findParticipant(participantId)
+        if (participant == null || participant[Participants.roomId] != roomId)
+            return@get call.respond(HttpStatusCode.Forbidden, "Not a member of this room")
+        val state = repo.getRoomState(roomId)
+            ?: return@get call.respond(HttpStatusCode.NotFound, "Room not found")
+        call.respond(state)
+    }
+
     sse("/rooms/{code}/events") {
-        // Commit the SSE response immediately so early returns produce a clean
-        // stream close rather than a 404 (Ktor defers sending headers until the
-        // first send() call; without this the routing pipeline falls through).
+        call.response.header("X-Accel-Buffering", "no")
+        call.response.header("Cache-Control", "no-cache, no-transform")
+
         send(ServerSentEvent(retry = 3000L))
 
         val code = call.parameters["code"]!!
