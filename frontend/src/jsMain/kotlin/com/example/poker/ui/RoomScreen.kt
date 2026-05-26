@@ -58,11 +58,18 @@ fun RoomScreen(
 
     // SSE connection — EventSource auto-reconnects on disconnect
     DisposableEffect(code, participantId) {
-        val es = EventSource("/rooms/$code/events?participantId=$participantId")
-        es.onopen = { connected = true; null }
+        val url = "/rooms/$code/events?participantId=$participantId"
+        println("[SSE] connecting → $url")
+        val es = EventSource(url)
+        es.onopen = {
+            println("[SSE] connected")
+            connected = true
+            null
+        }
         es.onmessage = { event: MessageEvent ->
+            val raw = event.data.toString()
+            println("[SSE] message: ${raw.take(120)}")
             try {
-                val raw = event.data.toString()
                 val elem = Json.parseToJsonElement(raw).jsonObject
                 when (elem["type"]?.jsonPrimitive?.content) {
                     "state" -> {
@@ -82,11 +89,18 @@ fun RoomScreen(
                             )
                         }
                     }
+                    else -> println("[SSE] unknown message type: ${elem["type"]}")
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                println("[SSE] parse error: $e  raw=$raw")
+            }
             null
         }
-        es.onerror = { connected = false; null }
+        es.onerror = {
+            println("[SSE] error / disconnected (readyState=${es.readyState})")
+            connected = false
+            null
+        }
         onDispose { es.close() }
     }
 
