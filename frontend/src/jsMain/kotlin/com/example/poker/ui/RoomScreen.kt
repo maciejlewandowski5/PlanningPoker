@@ -58,20 +58,21 @@ fun RoomScreen(
 
     var usePolling by remember { mutableStateOf(false) }
 
-    // SSE connection — with fallback to polling if SSE doesn't connect in time
+    // SSE connection — with fallback to polling if SSE keeps reconnecting
+    // without delivering data
     DisposableEffect(code, participantId) {
         var es: EventSource? = null
-        var sseConnected = false
+        var receivedData = false
+        var errorCount = 0
 
-        // Fallback: if SSE hasn't connected after 3s, switch to polling
         val fallbackTimer = window.setTimeout({
-            if (!sseConnected) {
-                println("[SSE] connection timed out — falling back to polling")
+            if (!receivedData) {
+                println("[SSE] no data received after 5s — falling back to polling")
                 es?.close()
                 usePolling = true
                 connected = true
             }
-        }, 3000)
+        }, 5000)
 
         fun handleMessage(raw: String) {
             try {
@@ -107,18 +108,26 @@ fun RoomScreen(
         es = source
         source.onopen = {
             println("[SSE] connected")
-            sseConnected = true
-            window.clearTimeout(fallbackTimer)
             connected = true
             null
         }
         source.onmessage = { event: MessageEvent ->
+            receivedData = true
+            window.clearTimeout(fallbackTimer)
             handleMessage(event.data.toString())
             null
         }
         source.onerror = {
-            println("[SSE] error / disconnected (readyState=${source.readyState})")
+            errorCount++
+            println("[SSE] error / disconnected (readyState=${source.readyState}, errors=$errorCount)")
             connected = false
+            if (errorCount >= 3 && !receivedData) {
+                println("[SSE] too many errors without data — falling back to polling")
+                source.close()
+                window.clearTimeout(fallbackTimer)
+                usePolling = true
+                connected = true
+            }
             null
         }
         onDispose {
