@@ -3,7 +3,6 @@ package com.example
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.openapi.*
@@ -17,7 +16,6 @@ fun Application.configureHttp() {
         json(Json { ignoreUnknownKeys = true })
     }
     install(SSE)
-    install(Compression)
 
     if (System.getenv("DEV_MODE") == "true") {
         install(CORS) {

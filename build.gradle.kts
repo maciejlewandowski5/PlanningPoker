@@ -28,7 +28,6 @@ dependencies {
     implementation(ktorLibs.server.routingOpenapi)
     implementation(ktorLibs.server.swagger)
     implementation(ktorLibs.server.sse)
-    implementation(ktorLibs.server.compression)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.cors)
     implementation(ktorLibs.serialization.kotlinx.json)
