@@ -10,6 +10,8 @@ import io.ktor.sse.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+private val sseJson = Json { encodeDefaults = true }
+
 fun Route.roomRoutes(repo: RoomRepository, service: RoomService) {
     post("/rooms") {
         val body = try { call.receive<CreateRoomRequest>() } catch (_: Exception) { CreateRoomRequest() }
@@ -63,7 +65,7 @@ fun Route.sseRoutes(repo: RoomRepository, service: RoomService, registry: Sessio
         val ch = registry.add(roomId)
         try {
             val state = repo.getRoomState(roomId) ?: return@sse
-            send(ServerSentEvent(Json.encodeToString(state)))
+            send(ServerSentEvent(sseJson.encodeToString(state)))
             for (msg in ch) {
                 send(ServerSentEvent(msg))
             }

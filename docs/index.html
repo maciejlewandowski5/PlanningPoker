@@ -706,11 +706,14 @@
             <li class="nav-fixed nav-header active" data-group="_"><a href="#api-_">API Summary</a></li>
 
                   <li class="nav-header" data-group="Default"><a href="#api-Default">API Methods - Default</a></li>
+                    <li data-group="Default" data-name="roomsCodeActionPost" class="">
+                      <a href="#api-Default-roomsCodeActionPost">roomsCodeActionPost</a>
+                    </li>
+                    <li data-group="Default" data-name="roomsCodeEventsGet" class="">
+                      <a href="#api-Default-roomsCodeEventsGet">roomsCodeEventsGet</a>
+                    </li>
                     <li data-group="Default" data-name="roomsCodeJoinPost" class="">
                       <a href="#api-Default-roomsCodeJoinPost">roomsCodeJoinPost</a>
-                    </li>
-                    <li data-group="Default" data-name="roomsCodeWsGet" class="">
-                      <a href="#api-Default-roomsCodeWsGet">roomsCodeWsGet</a>
                     </li>
                     <li data-group="Default" data-name="roomsPost" class="">
                       <a href="#api-Default-roomsPost">roomsPost</a>
@@ -736,6 +739,470 @@
         <div id="sections">
                 <section id="api-Default">
                   <h1>Default</h1>
+                    <div id="api-Default-roomsCodeActionPost">
+                      <article id="api-Default-roomsCodeActionPost-0" data-group="User" data-name="roomsCodeActionPost" data-version="0">
+                        <div class="pull-left">
+                          <h1>roomsCodeActionPost</h1>
+                          <p></p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/rooms/{code}/action</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Default-roomsCodeActionPost-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Default-roomsCodeActionPost-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Default-roomsCodeActionPost-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeActionPost-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Default-roomsCodeActionPost-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X POST\
+"//rooms/{code}/action"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.DefaultApi;
+
+import java.io.File;
+import java.util.*;
+
+public class DefaultApiExample {
+
+    public static void main(String[] args) {
+        
+        DefaultApi apiInstance = new DefaultApi();
+         code = ; //  | 
+        try {
+            apiInstance.roomsCodeActionPost(code);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DefaultApi#roomsCodeActionPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.DefaultApi;
+
+public class DefaultApiExample {
+
+    public static void main(String[] args) {
+        DefaultApi apiInstance = new DefaultApi();
+         code = ; //  | 
+        try {
+            apiInstance.roomsCodeActionPost(code);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DefaultApi#roomsCodeActionPost");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp"> *code = ; // 
+
+DefaultApi *apiInstance = [[DefaultApi alloc] init];
+
+[apiInstance roomsCodeActionPostWith:code
+              completionHandler: ^(NSError* error) {
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UntitledApi = require('untitled_api');
+
+var api = new UntitledApi.DefaultApi()
+var code = ; // {{}} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.roomsCodeActionPost(code, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class roomsCodeActionPostExample
+    {
+        public void main()
+        {
+
+            var apiInstance = new DefaultApi();
+            var code = new (); //  | 
+
+            try
+            {
+                apiInstance.roomsCodeActionPost(code);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling DefaultApi.roomsCodeActionPost: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\ApiDefaultApi();
+$code = ; //  | 
+
+try {
+    $api_instance->roomsCodeActionPost($code);
+} catch (Exception $e) {
+    echo 'Exception when calling DefaultApi->roomsCodeActionPost: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::DefaultApi;
+
+my $api_instance = WWW::SwaggerClient::DefaultApi->new();
+my $code = ; #  | 
+
+eval { 
+    $api_instance->roomsCodeActionPost(code => $code);
+};
+if ($@) {
+    warn "Exception when calling DefaultApi->roomsCodeActionPost: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeActionPost-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi()
+code =  #  | 
+
+try: 
+    api_instance.rooms_code_action_post(code)
+except ApiException as e:
+    print("Exception when calling DefaultApi->roomsCodeActionPost: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">code*</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_roomsCodeActionPost_code">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      
+                                                  </span>
+                                  
+                                              </div>
+                                                  <div class="inner required">
+                                                      Required
+                                                  </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
+
+
+
+
+
+                          <h2>Responses</h2>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Default-roomsCodeEventsGet">
+                      <article id="api-Default-roomsCodeEventsGet-0" data-group="User" data-name="roomsCodeEventsGet" data-version="0">
+                        <div class="pull-left">
+                          <h1>roomsCodeEventsGet</h1>
+                          <p></p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/rooms/{code}/events</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Default-roomsCodeEventsGet-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Default-roomsCodeEventsGet-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Default-roomsCodeEventsGet-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Default-roomsCodeEventsGet-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Default-roomsCodeEventsGet-0-curl">
+                           <pre class="prettyprint"><code class="language-bsh">curl -X GET\
+"//rooms/{code}/events"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.DefaultApi;
+
+import java.io.File;
+import java.util.*;
+
+public class DefaultApiExample {
+
+    public static void main(String[] args) {
+        
+        DefaultApi apiInstance = new DefaultApi();
+         code = ; //  | 
+        try {
+            apiInstance.roomsCodeEventsGet(code);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DefaultApi#roomsCodeEventsGet");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.DefaultApi;
+
+public class DefaultApiExample {
+
+    public static void main(String[] args) {
+        DefaultApi apiInstance = new DefaultApi();
+         code = ; //  | 
+        try {
+            apiInstance.roomsCodeEventsGet(code);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DefaultApi#roomsCodeEventsGet");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp"> *code = ; // 
+
+DefaultApi *apiInstance = [[DefaultApi alloc] init];
+
+[apiInstance roomsCodeEventsGetWith:code
+              completionHandler: ^(NSError* error) {
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UntitledApi = require('untitled_api');
+
+var api = new UntitledApi.DefaultApi()
+var code = ; // {{}} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.roomsCodeEventsGet(code, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class roomsCodeEventsGetExample
+    {
+        public void main()
+        {
+
+            var apiInstance = new DefaultApi();
+            var code = new (); //  | 
+
+            try
+            {
+                apiInstance.roomsCodeEventsGet(code);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling DefaultApi.roomsCodeEventsGet: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\ApiDefaultApi();
+$code = ; //  | 
+
+try {
+    $api_instance->roomsCodeEventsGet($code);
+} catch (Exception $e) {
+    echo 'Exception when calling DefaultApi->roomsCodeEventsGet: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::DefaultApi;
+
+my $api_instance = WWW::SwaggerClient::DefaultApi->new();
+my $code = ; #  | 
+
+eval { 
+    $api_instance->roomsCodeEventsGet(code => $code);
+};
+if ($@) {
+    warn "Exception when calling DefaultApi->roomsCodeEventsGet: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-roomsCodeEventsGet-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi()
+code =  #  | 
+
+try: 
+    api_instance.rooms_code_events_get(code)
+except ApiException as e:
+    print("Exception when calling DefaultApi->roomsCodeEventsGet: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">code*</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_roomsCodeEventsGet_code">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      
+                                                  </span>
+                                  
+                                              </div>
+                                                  <div class="inner required">
+                                                      Required
+                                                  </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
+
+
+
+
+
+                          <h2>Responses</h2>
+                        </article>
+                      </div>
+                      <hr>
                     <div id="api-Default-roomsCodeJoinPost">
                       <article id="api-Default-roomsCodeJoinPost-0" data-group="User" data-name="roomsCodeJoinPost" data-version="0">
                         <div class="pull-left">
@@ -960,296 +1427,6 @@ except ApiException as e:
                                   </tr>
                             </table>
 
-
-
-
-
-                          <h2>Responses</h2>
-                        </article>
-                      </div>
-                      <hr>
-                    <div id="api-Default-roomsCodeWsGet">
-                      <article id="api-Default-roomsCodeWsGet-0" data-group="User" data-name="roomsCodeWsGet" data-version="0">
-                        <div class="pull-left">
-                          <h1>roomsCodeWsGet</h1>
-                          <p></p>
-                        </div>
-                        <div class="pull-right"></div>
-                        <div class="clearfix"></div>
-                        <p></p>
-                        <p class="marked"></p>
-                        <p></p>
-                        <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/rooms/{code}/ws</span></code></pre>
-                        <p>
-                          <h3>Usage and SDK Samples</h3>
-                        </p>
-                        <ul class="nav nav-tabs nav-tabs-examples">
-                          <li class="active"><a href="#examples-Default-roomsCodeWsGet-0-curl">Curl</a></li>
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-java">Java</a></li>
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-android">Android</a></li>
-                          <!--<li class=""><a href="#examples-Default-roomsCodeWsGet-0-groovy">Groovy</a></li>-->
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-objc">Obj-C</a></li>
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-javascript">JavaScript</a></li>
-                          <!--<li class=""><a href="#examples-Default-roomsCodeWsGet-0-angular">Angular</a></li>-->
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-csharp">C#</a></li>
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-php">PHP</a></li>
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-perl">Perl</a></li>
-                          <li class=""><a href="#examples-Default-roomsCodeWsGet-0-python">Python</a></li>
-                        </ul>
-
-                        <div class="tab-content">
-                          <div class="tab-pane active" id="examples-Default-roomsCodeWsGet-0-curl">
-                           <pre class="prettyprint"><code class="language-bsh">curl -X GET\
-"//rooms/{code}/ws"</code></pre>
-                          </div>
-                          <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-java">
-                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
-import io.swagger.client.auth.*;
-import io.swagger.client.model.*;
-import io.swagger.client.api.DefaultApi;
-
-import java.io.File;
-import java.util.*;
-
-public class DefaultApiExample {
-
-    public static void main(String[] args) {
-        
-        DefaultApi apiInstance = new DefaultApi();
-         code = ; //  | 
-         connection = ; //  | 
-         upgrade = ; //  | 
-        try {
-            apiInstance.roomsCodeWsGet(code, connection, upgrade);
-        } catch (ApiException e) {
-            System.err.println("Exception when calling DefaultApi#roomsCodeWsGet");
-            e.printStackTrace();
-        }
-    }
-}</code></pre>
-                          </div>
-
-                          <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-android">
-                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.DefaultApi;
-
-public class DefaultApiExample {
-
-    public static void main(String[] args) {
-        DefaultApi apiInstance = new DefaultApi();
-         code = ; //  | 
-         connection = ; //  | 
-         upgrade = ; //  | 
-        try {
-            apiInstance.roomsCodeWsGet(code, connection, upgrade);
-        } catch (ApiException e) {
-            System.err.println("Exception when calling DefaultApi#roomsCodeWsGet");
-            e.printStackTrace();
-        }
-    }
-}</code></pre>
-                          </div>
-  <!--
-  <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-groovy">
-  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
-  </div> -->
-                            <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp"> *code = ; // 
- *connection = ; //  (optional)
- *upgrade = ; //  (optional)
-
-DefaultApi *apiInstance = [[DefaultApi alloc] init];
-
-[apiInstance roomsCodeWsGetWith:code
-    connection:connection
-    upgrade:upgrade
-              completionHandler: ^(NSError* error) {
-                            if (error) {
-                                NSLog(@"Error: %@", error);
-                            }
-                        }];
-</code></pre>
-                            </div>
-
-                            <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-javascript">
-                              <pre class="prettyprint"><code class="language-js">var UntitledApi = require('untitled_api');
-
-var api = new UntitledApi.DefaultApi()
-var code = ; // {{}} 
-var opts = { 
-  'connection': , // {{}} 
-  'upgrade':  // {{}} 
-};
-var callback = function(error, data, response) {
-  if (error) {
-    console.error(error);
-  } else {
-    console.log('API called successfully.');
-  }
-};
-api.roomsCodeWsGet(code, opts, callback);
-</code></pre>
-                            </div>
-
-                            <!--<div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-angular">
-              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
-            </div>-->
-                            <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-csharp">
-                              <pre class="prettyprint"><code class="language-cs">using System;
-using System.Diagnostics;
-using IO.Swagger.Api;
-using IO.Swagger.Client;
-using IO.Swagger.Model;
-
-namespace Example
-{
-    public class roomsCodeWsGetExample
-    {
-        public void main()
-        {
-
-            var apiInstance = new DefaultApi();
-            var code = new (); //  | 
-            var connection = new (); //  |  (optional) 
-            var upgrade = new (); //  |  (optional) 
-
-            try
-            {
-                apiInstance.roomsCodeWsGet(code, connection, upgrade);
-            }
-            catch (Exception e)
-            {
-                Debug.Print("Exception when calling DefaultApi.roomsCodeWsGet: " + e.Message );
-            }
-        }
-    }
-}
-</code></pre>
-                            </div>
-
-                            <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-php">
-                              <pre class="prettyprint"><code class="language-php"><&#63;php
-require_once(__DIR__ . '/vendor/autoload.php');
-
-$api_instance = new Swagger\Client\ApiDefaultApi();
-$code = ; //  | 
-$connection = ; //  | 
-$upgrade = ; //  | 
-
-try {
-    $api_instance->roomsCodeWsGet($code, $connection, $upgrade);
-} catch (Exception $e) {
-    echo 'Exception when calling DefaultApi->roomsCodeWsGet: ', $e->getMessage(), PHP_EOL;
-}
-?></code></pre>
-                            </div>
-
-                            <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-perl">
-                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
-use WWW::SwaggerClient::Configuration;
-use WWW::SwaggerClient::DefaultApi;
-
-my $api_instance = WWW::SwaggerClient::DefaultApi->new();
-my $code = ; #  | 
-my $connection = ; #  | 
-my $upgrade = ; #  | 
-
-eval { 
-    $api_instance->roomsCodeWsGet(code => $code, connection => $connection, upgrade => $upgrade);
-};
-if ($@) {
-    warn "Exception when calling DefaultApi->roomsCodeWsGet: $@\n";
-}</code></pre>
-                            </div>
-
-                            <div class="tab-pane" id="examples-Default-roomsCodeWsGet-0-python">
-                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
-import time
-import swagger_client
-from swagger_client.rest import ApiException
-from pprint import pprint
-
-# create an instance of the API class
-api_instance = swagger_client.DefaultApi()
-code =  #  | 
-connection =  #  |  (optional)
-upgrade =  #  |  (optional)
-
-try: 
-    api_instance.rooms_code_ws_get(code, connection=connection, upgrade=upgrade)
-except ApiException as e:
-    print("Exception when calling DefaultApi->roomsCodeWsGet: %s\n" % e)</code></pre>
-                            </div>
-                          </div>
-
-                          <h2>Parameters</h2>
-
-                            <div class="methodsubtabletitle">Path parameters</div>
-                            <table id="methodsubtable">
-                                <tr>
-                                  <th width="150px">Name</th>
-                                  <th>Description</th>
-                                </tr>
-                                  <tr><td style="width:150px;">code*</td>
-                                  <td>
-                                  
-                                  
-                                      <div id="d2e199_roomsCodeWsGet_code">
-                                          <div class="json-schema-view">
-                                              <div class="primitive">
-                                                  <span class="type">
-                                                      
-                                                  </span>
-                                  
-                                              </div>
-                                                  <div class="inner required">
-                                                      Required
-                                                  </div>
-                                          </div>
-                                      </div>
-                                  </td>
-                                  </tr>
-                            </table>
-
-                            <div class="methodsubtabletitle">Header parameters</div>
-                            <table id="methodsubtable">
-                              <tr>
-                                <th width="150px">Name</th>
-                                <th>Description</th>
-                              </tr>
-                                  <tr><td style="width:150px;">Connection</td>
-                                  <td>
-                                  
-                                  
-                                      <div id="d2e199_roomsCodeWsGet_connection">
-                                          <div class="json-schema-view">
-                                              <div class="primitive">
-                                                  <span class="type">
-                                                      
-                                                  </span>
-                                  
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </td>
-                                  </tr>
-                                  <tr><td style="width:150px;">Upgrade</td>
-                                  <td>
-                                  
-                                  
-                                      <div id="d2e199_roomsCodeWsGet_upgrade">
-                                          <div class="json-schema-view">
-                                              <div class="primitive">
-                                                  <span class="type">
-                                                      
-                                                  </span>
-                                  
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </td>
-                                  </tr>
-                            </table>
 
 
 
