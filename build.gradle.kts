@@ -45,4 +45,10 @@ tasks.named<ProcessResources>("processResources") {
     from(project(":frontend").layout.buildDirectory.dir("dist/js/productionExecutable")) {
         into("static")
     }
+    // Also copy index.html from frontend resources
+    from(project(":frontend").layout.projectDirectory.dir("src/jsMain/resources")) {
+        include("index.html")
+        into("static")
+    }
 }
+
