@@ -14,27 +14,25 @@ class RoomService(
 
     suspend fun vote(roomId: String, participantId: String, value: String) {
         repo.upsertVote(participantId, value)
-        broadcast(roomId)
+        registry.broadcast(roomId, Json.encodeToString(VotedDelta(participantId = participantId)))
     }
 
     suspend fun reveal(roomId: String) {
         repo.setRevealed(roomId, true)
-        broadcast(roomId)
+        broadcastState(roomId)
     }
 
     suspend fun hide(roomId: String) {
         repo.setRevealed(roomId, false)
-        broadcast(roomId)
+        broadcastState(roomId)
     }
 
     suspend fun reset(roomId: String) {
         repo.resetRound(roomId)
-        broadcast(roomId)
+        broadcastState(roomId)
     }
 
-    suspend fun broadcastState(roomId: String) = broadcast(roomId)
-
-    private suspend fun broadcast(roomId: String) {
+    suspend fun broadcastState(roomId: String) {
         val state = repo.getRoomState(roomId) ?: return
         registry.broadcast(roomId, Json.encodeToString(state))
     }

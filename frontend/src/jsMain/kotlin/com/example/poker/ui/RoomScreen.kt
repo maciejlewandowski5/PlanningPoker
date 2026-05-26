@@ -2,7 +2,6 @@ package com.example.poker.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -10,17 +9,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.poker.api.RoomState
 import com.example.poker.ui.components.*
-import com.example.poker.ws.sendMessage
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.EventSource
 import org.w3c.dom.MessageEvent
-import org.w3c.dom.WebSocket
+import org.w3c.fetch.RequestInit
 
 private val json = Json { ignoreUnknownKeys = true }
 
@@ -35,7 +37,6 @@ fun RoomScreen(
     var connected by remember { mutableStateOf(false) }
     var myVote by remember { mutableStateOf<String?>(null) }
     var customVote by remember { mutableStateOf("") }
-    var ws by remember { mutableStateOf<WebSocket?>(null) }
     var copied by remember { mutableStateOf(false) }
 
     // Inject keyframes once for the lifetime of this screen
@@ -55,40 +56,58 @@ fun RoomScreen(
         onDispose { try { document.head?.removeChild(styleEl) } catch (_: Exception) {} }
     }
 
-    fun buildWsUrl(): String {
-        val loc = window.location
-        val proto = if (loc.protocol == "https:") "wss:" else "ws:"
-        return "$proto//${loc.host}/rooms/$code/ws?participantId=$participantId"
-    }
-
-    fun connect(attempt: Int = 0) {
-        val socket = WebSocket(buildWsUrl())
-        ws = socket
-        socket.onopen = { connected = true }
-        socket.onmessage = { event: MessageEvent ->
+    // SSE connection — EventSource auto-reconnects on disconnect
+    DisposableEffect(code, participantId) {
+        val es = EventSource("/rooms/$code/events?participantId=$participantId")
+        es.onopen = { connected = true; null }
+        es.onmessage = { event: MessageEvent ->
             try {
-                val state = json.decodeFromString<RoomState>(event.data.toString())
-                roomState = state
-                if (state.votesRevealed) {
-                    myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
+                val raw = event.data.toString()
+                val elem = Json.parseToJsonElement(raw).jsonObject
+                when (elem["type"]?.jsonPrimitive?.content) {
+                    "state" -> {
+                        val state = json.decodeFromString<RoomState>(raw)
+                        roomState = state
+                        if (state.votesRevealed) {
+                            myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
+                        }
+                    }
+                    "voted" -> {
+                        val pid = elem["participantId"]?.jsonPrimitive?.content
+                        if (pid != null) {
+                            roomState = roomState?.copy(
+                                participants = roomState!!.participants.map {
+                                    if (it.participantId == pid) it.copy(hasVoted = true) else it
+                                }
+                            )
+                        }
+                    }
                 }
             } catch (_: Exception) {}
+            null
         }
-        socket.onclose = {
-            connected = false
-            scope.launch {
-                delay(minOf(1000L * (1 shl attempt.coerceAtMost(5)), 30_000L))
-                connect(attempt + 1)
-            }
-        }
-        socket.onerror = {}
+        es.onerror = { connected = false; null }
+        onDispose { es.close() }
     }
 
     fun send(type: String, value: String? = null) {
-        ws?.takeIf { it.readyState == WebSocket.OPEN }?.sendMessage(type, value)
+        scope.launch {
+            try {
+                val body = if (value != null)
+                    """{"type":"$type","value":"$value"}"""
+                else
+                    """{"type":"$type"}"""
+                window.fetch(
+                    "/rooms/$code/action?participantId=$participantId",
+                    RequestInit(
+                        method = "POST",
+                        body = body,
+                        headers = js("({'Content-Type':'application/json'})")
+                    )
+                ).await()
+            } catch (_: Exception) {}
+        }
     }
-
-    LaunchedEffect(code, participantId) { connect() }
 
     Div({
         style {
@@ -173,10 +192,7 @@ fun RoomScreen(
                     }
                 }) { Text(if (copied) "✓" else "⎘") }
                 Button({
-                    onClick {
-                        ws?.close()
-                        onLeave()
-                    }
+                    onClick { onLeave() }
                     style {
                         background("transparent")
                         property("border", "none")

@@ -34,3 +34,9 @@ data class RoomState(
 
 @Serializable
 data class ErrorMessage(val type: String = "error", val message: String)
+
+@Serializable
+data class ActionRequest(val type: String, val value: String? = null)
+
+@Serializable
+data class VotedDelta(val type: String = "voted", val participantId: String)

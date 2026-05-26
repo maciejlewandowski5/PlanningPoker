@@ -13,6 +13,6 @@ fun Application.configureRouting() {
             default("index.html")
         }
         roomRoutes(repo, service)
-        webSocketRoutes(repo, service, registry)
+        sseRoutes(repo, service, registry)
     }
 }

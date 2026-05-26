@@ -3,19 +3,21 @@ package com.example
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
+import io.ktor.server.sse.*
 import kotlinx.serialization.json.Json
 
 fun Application.configureHttp() {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true })
     }
-    install(WebSockets)
+    install(SSE)
+    install(Compression)
 
     if (System.getenv("DEV_MODE") == "true") {
         install(CORS) {
