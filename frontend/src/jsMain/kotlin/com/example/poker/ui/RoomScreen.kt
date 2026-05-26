@@ -51,28 +51,36 @@ fun RoomScreen(
                 from { opacity: 0; transform: translateY(8px); }
                 to   { opacity: 1; transform: translateY(0px); }
             }
+            @keyframes pp-poll-bar {
+                from { transform: scaleX(0); }
+                to   { transform: scaleX(1); }
+            }
+            @keyframes pp-poll-pulse {
+                0%   { opacity: 0.5; }
+                50%  { opacity: 1;   }
+                100% { opacity: 0.5; }
+            }
         """.trimIndent()
         document.head?.appendChild(styleEl)
         onDispose { try { document.head?.removeChild(styleEl) } catch (_: Exception) {} }
     }
 
     var usePolling by remember { mutableStateOf(false) }
+    var pollCycle by remember { mutableStateOf(0) }
+    val pollIntervalMs = 2000
 
-    // SSE connection — with fallback to polling if SSE keeps reconnecting
-    // without delivering data
+    // SSE connection — with automatic fallback to polling when SSE is unstable
     DisposableEffect(code, participantId) {
-        var es: EventSource? = null
         var receivedData = false
-        var errorCount = 0
+        var abandoned = false
 
-        val fallbackTimer = window.setTimeout({
-            if (!receivedData) {
-                println("[SSE] no data received after 5s — falling back to polling")
-                es?.close()
-                usePolling = true
-                connected = true
-            }
-        }, 5000)
+        fun switchToPolling(reason: String) {
+            if (abandoned) return
+            abandoned = true
+            println("[SSE] $reason — switching to polling")
+            usePolling = true
+            connected = true
+        }
 
         fun handleMessage(raw: String) {
             try {
@@ -105,29 +113,30 @@ fun RoomScreen(
         val url = "/rooms/$code/events?participantId=$participantId"
         println("[SSE] connecting → $url")
         val source = EventSource(url)
-        es = source
+
+        val fallbackTimer = window.setTimeout({
+            if (!receivedData) {
+                source.close()
+                switchToPolling("no data received after 5s")
+            }
+        }, 5000)
+
         source.onopen = {
-            println("[SSE] connected")
-            connected = true
+            println("[SSE] connected (waiting for data…)")
             null
         }
         source.onmessage = { event: MessageEvent ->
-            receivedData = true
-            window.clearTimeout(fallbackTimer)
+            if (!receivedData) {
+                receivedData = true
+                window.clearTimeout(fallbackTimer)
+                connected = true
+                println("[SSE] first data received — SSE is stable")
+            }
             handleMessage(event.data.toString())
             null
         }
         source.onerror = {
-            errorCount++
-            println("[SSE] error / disconnected (readyState=${source.readyState}, errors=$errorCount)")
-            connected = false
-            if (errorCount >= 3 && !receivedData) {
-                println("[SSE] too many errors without data — falling back to polling")
-                source.close()
-                window.clearTimeout(fallbackTimer)
-                usePolling = true
-                connected = true
-            }
+            println("[SSE] error / disconnected (readyState=${source.readyState})")
             null
         }
         onDispose {
@@ -136,33 +145,35 @@ fun RoomScreen(
         }
     }
 
+    fun fetchState() {
+        scope.launch {
+            try {
+                val resp = window.fetch(
+                    "/rooms/$code/state?participantId=$participantId"
+                ).await()
+                if (resp.ok) {
+                    val raw = resp.text().await()
+                    val state = json.decodeFromString<RoomState>(raw)
+                    roomState = state
+                    connected = true
+                    pollCycle++
+                    if (state.votesRevealed) {
+                        myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
+                    }
+                }
+            } catch (e: Exception) {
+                println("[Poll] error: $e")
+                connected = false
+            }
+        }
+    }
+
     // Polling fallback — fetches room state every 2s when SSE is unavailable
     DisposableEffect(usePolling, code, participantId) {
         var pollingTimer: Int? = null
         if (usePolling) {
-            fun poll() {
-                scope.launch {
-                    try {
-                        val resp = window.fetch(
-                            "/rooms/$code/state?participantId=$participantId"
-                        ).await()
-                        if (resp.ok) {
-                            val raw = resp.text().await()
-                            val state = json.decodeFromString<RoomState>(raw)
-                            roomState = state
-                            connected = true
-                            if (state.votesRevealed) {
-                                myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
-                            }
-                        }
-                    } catch (e: Exception) {
-                        println("[Poll] error: $e")
-                        connected = false
-                    }
-                }
-            }
-            poll()
-            pollingTimer = window.setInterval({ poll() }, 2000)
+            fetchState()
+            pollingTimer = window.setInterval({ fetchState() }, pollIntervalMs)
         }
         onDispose { pollingTimer?.let { window.clearInterval(it) } }
     }
@@ -182,6 +193,7 @@ fun RoomScreen(
                         headers = js("({'Content-Type':'application/json'})")
                     )
                 ).await()
+                if (usePolling) fetchState()
             } catch (_: Exception) {}
         }
     }
@@ -231,6 +243,17 @@ fun RoomScreen(
                     }) {
                         Text("⚠ Reconnecting…")
                     }
+                } else if (usePolling) {
+                    Span({
+                        style {
+                            fontSize(11.px)
+                            color(Color(Colors.textSecondary))
+                            property("font-weight", "500")
+                            property("animation", "pp-poll-pulse 2s ease-in-out infinite")
+                        }
+                    }) {
+                        Text("● polling")
+                    }
                 }
                 Span({
                     style {
@@ -278,6 +301,31 @@ fun RoomScreen(
                         fontSize(13.px)
                     }
                 }) { Text("Leave") }
+            }
+        }
+
+        // Polling progress bar — animates from 0→100% width over the poll interval
+        if (usePolling && connected) {
+            Div({
+                style {
+                    width(100.percent)
+                    height(3.px)
+                    backgroundColor(Color(Colors.border))
+                    property("overflow", "hidden")
+                }
+            }) {
+                key(pollCycle) {
+                    Div({
+                        style {
+                            height(100.percent)
+                            width(100.percent)
+                            backgroundColor(Color(Colors.primary))
+                            property("transform-origin", "left")
+                            property("animation", "pp-poll-bar ${pollIntervalMs}ms linear")
+                            property("opacity", "0.5")
+                        }
+                    })
+                }
             }
         }
 

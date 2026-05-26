@@ -15,6 +15,7 @@ fun VoteButton(label: String, selected: Boolean, onClick: () -> Unit) {
             fontSize(15.px)
             property("font-weight", "700")
             cursor("pointer")
+            property("transition", "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease")
             border {
                 width(2.px)
                 style(LineStyle.Solid)
@@ -23,6 +24,7 @@ fun VoteButton(label: String, selected: Boolean, onClick: () -> Unit) {
             if (selected) {
                 backgroundColor(Color(Colors.primary))
                 color(Color(Colors.surface))
+                property("transform", "scale(1.05)")
             } else {
                 backgroundColor(Color(Colors.surface))
                 color(Color(Colors.textPrimary))

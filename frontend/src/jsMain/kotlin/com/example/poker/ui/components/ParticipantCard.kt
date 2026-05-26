@@ -19,6 +19,7 @@ fun ParticipantCard(participant: ParticipantState, isMe: Boolean, votesRevealed:
             padding(Spacing.md)
             minWidth(120.px)
             property("text-align", "center")
+            property("transition", "background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease")
         }
     }) {
         P({
@@ -59,6 +60,7 @@ private fun VoteBadge(label: String, revealed: Boolean) {
             borderRadius(20.px)
             fontSize(14.px)
             property("font-weight", "700")
+            property("transition", "background-color 0.25s ease, transform 0.2s ease")
             if (revealed) {
                 backgroundColor(Color(Colors.primary))
                 color(Color(Colors.surface))
