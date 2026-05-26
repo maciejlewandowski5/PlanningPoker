@@ -40,9 +40,3 @@ dependencies {
     testImplementation(ktorLibs.server.testHost)
 }
 
-tasks.named<ProcessResources>("processResources") {
-    dependsOn(":frontend:jsBrowserProductionWebpack")
-    from(project(":frontend").layout.buildDirectory.dir("dist/js/productionExecutable")) {
-        into("static")
-    }
-}
