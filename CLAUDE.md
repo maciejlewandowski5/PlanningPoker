@@ -25,6 +25,33 @@ $env:DEV_MODE="true"; ./gradlew run   # PowerShell
 DEV_MODE=true ./gradlew run           # bash
 ```
 
+## Docker (verify before pushing to Railway)
+
+Always build and smoke-test the Docker image locally after touching the Dockerfile, build.gradle.kts, or any static resource wiring. A successful `./gradlew build` is not enough — Railway builds inside a clean Docker layer where incremental Gradle caches don't exist.
+
+```bash
+# Build the Docker image (mimics exactly what Railway does)
+docker build -t planningpoker-local .
+
+# Run it locally
+docker run --rm -p 8080:8080 planningpoker-local
+
+# Verify the frontend loads (should return HTML, not 404)
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+# Expected: 200
+
+# Verify the API is reachable
+curl -s -X POST http://localhost:8080/rooms \
+  -H "Content-Type: application/json" \
+  -d '{"votingScale":"1,2,3,5,8,13"}' | python -m json.tool
+# Expected: {"roomId":"...","code":"..."}
+```
+
+**Key gotchas found during Railway deployment:**
+- The `.dockerignore` must exclude `build/` and `.gradle/`. Without it, local build artefacts are sent to Docker and Gradle skips tasks (UP-TO-DATE), leaving `frontend/build/` empty inside the container.
+- `jsBrowserProductionWebpack` outputs to `frontend/build/dist/js/productionExecutable/` locally, but the Dockerfile uses `find` to locate `planning-poker.js` in case the path ever changes.
+- The frontend static files are copied into `src/main/resources/static/` as an explicit Docker step so `processResources` picks them up unconditionally — do not rely solely on Gradle task chaining for this.
+
 ## Architecture
 
 This is a Ktor 3.5 server (Netty, JVM 21) with a Compose HTML (Kotlin/JS) frontend compiled to a static JS bundle and embedded in the backend JAR.
@@ -64,7 +91,7 @@ Kotlin/JS module compiled by webpack. Output (`planning-poker.js`) is copied int
 
 ### Gradle setup
 
-- Root `build.gradle.kts` — backend (Ktor, JVM). Declares frontend plugins with `apply false` to resolve versions before subprojects apply them. `copyFrontendDist` task copies webpack output before `processResources`.
+- Root `build.gradle.kts` — backend (Ktor, JVM). Declares frontend plugins with `apply false` to resolve versions before subprojects apply them. The `processResources` task is extended to depend on `:frontend:jsBrowserProductionWebpack` and include its output under `static/`.
 - `frontend/build.gradle.kts` — Kotlin Multiplatform, JS/IR target, Compose HTML.
 - `gradle/libs.versions.toml` — non-Ktor library versions (Kotlin, Compose Multiplatform, Exposed, coroutines, serialization, SQLite).
 - `gradle/ktor-version-catalog` — Ktor versions via `io.ktor:ktor-version-catalog:3.5.0` (referenced as `ktorLibs`).
