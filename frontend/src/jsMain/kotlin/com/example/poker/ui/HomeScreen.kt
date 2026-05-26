@@ -14,6 +14,7 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
 private val SCALE_PRESETS = listOf(
+    "MD"        to "0,0.25,0.5,1,1.5,2,3,4,5,6,7,10,100,?",
     "Fibonacci" to "1,2,3,5,8,13,21,40,100,?",
     "T-shirt"   to "XS,S,M,L,XL,XXL",
     "Days"      to "1,2,3,5,7,10,14,21"

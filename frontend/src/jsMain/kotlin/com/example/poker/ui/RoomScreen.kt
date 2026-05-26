@@ -15,16 +15,14 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
-import org.w3c.dom.EventSource
-import org.w3c.dom.MessageEvent
 import org.w3c.fetch.RequestInit
 
 private val json = Json { ignoreUnknownKeys = true }
+
+private val POLL_COLORS = listOf("#4f46e5", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4")
 
 @Composable
 fun RoomScreen(
@@ -38,8 +36,10 @@ fun RoomScreen(
     var myVote by remember { mutableStateOf<String?>(null) }
     var customVote by remember { mutableStateOf("") }
     var copied by remember { mutableStateOf(false) }
+    var pollCycle by remember { mutableStateOf(0) }
+    var pendingAction by remember { mutableStateOf(false) }
+    val pollIntervalMs = 2000
 
-    // Inject keyframes once for the lifetime of this screen
     DisposableEffect(Unit) {
         val styleEl = document.createElement("style")
         styleEl.asDynamic().textContent = """
@@ -62,89 +62,6 @@ fun RoomScreen(
         """.trimIndent()
         document.head?.appendChild(styleEl)
         onDispose { try { document.head?.removeChild(styleEl) } catch (_: Exception) {} }
-    }
-
-    var usePolling by remember { mutableStateOf(false) }
-    var pollCycle by remember { mutableStateOf(0) }
-    var pendingAction by remember { mutableStateOf(false) }
-    val pollIntervalMs = 2000
-
-    // SSE connection — with automatic fallback to polling when SSE is unstable
-    DisposableEffect(code, participantId) {
-        var receivedData = false
-        var abandoned = false
-
-        fun switchToPolling(reason: String) {
-            if (abandoned) return
-            abandoned = true
-            println("[SSE] $reason — switching to polling")
-            usePolling = true
-            connected = true
-        }
-
-        fun handleMessage(raw: String) {
-            try {
-                val elem = Json.parseToJsonElement(raw).jsonObject
-                when (elem["type"]?.jsonPrimitive?.content) {
-                    "state" -> {
-                        val state = json.decodeFromString<RoomState>(raw)
-                        roomState = state
-                        pendingAction = false
-                        if (state.votesRevealed) {
-                            myVote = state.participants.find { it.participantId == participantId }?.vote ?: myVote
-                        }
-                    }
-                    "voted" -> {
-                        val pid = elem["participantId"]?.jsonPrimitive?.content
-                        if (pid != null) {
-                            roomState = roomState?.copy(
-                                participants = roomState!!.participants.map {
-                                    if (it.participantId == pid) it.copy(hasVoted = true) else it
-                                }
-                            )
-                            pendingAction = false
-                        }
-                    }
-                    else -> println("[SSE] unknown message type: ${elem["type"]}")
-                }
-            } catch (e: Exception) {
-                println("[SSE] parse error: $e  raw=$raw")
-            }
-        }
-
-        val url = "/rooms/$code/events?participantId=$participantId"
-        println("[SSE] connecting → $url")
-        val source = EventSource(url)
-
-        val fallbackTimer = window.setTimeout({
-            if (!receivedData) {
-                source.close()
-                switchToPolling("no data received after 5s")
-            }
-        }, 5000)
-
-        source.onopen = {
-            println("[SSE] connected (waiting for data…)")
-            null
-        }
-        source.onmessage = { event: MessageEvent ->
-            if (!receivedData) {
-                receivedData = true
-                window.clearTimeout(fallbackTimer)
-                connected = true
-                println("[SSE] first data received — SSE is stable")
-            }
-            handleMessage(event.data.toString())
-            null
-        }
-        source.onerror = {
-            println("[SSE] error / disconnected (readyState=${source.readyState})")
-            null
-        }
-        onDispose {
-            window.clearTimeout(fallbackTimer)
-            source.close()
-        }
     }
 
     fun fetchState() {
@@ -171,14 +88,10 @@ fun RoomScreen(
         }
     }
 
-    // Polling fallback — fetches room state every 2s when SSE is unavailable
-    DisposableEffect(usePolling, code, participantId) {
-        var pollingTimer: Int? = null
-        if (usePolling) {
-            fetchState()
-            pollingTimer = window.setInterval({ fetchState() }, pollIntervalMs)
-        }
-        onDispose { pollingTimer?.let { window.clearInterval(it) } }
+    DisposableEffect(code, participantId) {
+        fetchState()
+        val timer = window.setInterval({ fetchState() }, pollIntervalMs)
+        onDispose { window.clearInterval(timer) }
     }
 
     fun send(type: String, value: String? = null) {
@@ -197,7 +110,7 @@ fun RoomScreen(
                         headers = js("({'Content-Type':'application/json'})")
                     )
                 ).await()
-                if (usePolling) fetchState()
+                fetchState()
             } catch (_: Exception) {}
         }
     }
@@ -245,50 +158,27 @@ fun RoomScreen(
                             property("font-weight", "600")
                         }
                     }) {
-                        Text("⚠ Reconnecting…")
+                        Text("Connecting…")
                     }
-                } else if (usePolling) {
-                    Div({
-                        style {
-                            display(DisplayStyle.Flex)
-                            alignItems(AlignItems.Center)
-                            gap(4.px)
-                        }
-                    }) {
-                        key(pollCycle) {
-                            Div({
-                                style {
-                                    width(12.px)
-                                    height(12.px)
-                                    borderRadius(50.percent)
-                                    property("border", "2px solid ${Colors.border}")
-                                    property("border-top-color", Colors.primary)
-                                    property("animation", "pp-poll-spin ${pollIntervalMs}ms linear")
-                                    property("box-sizing", "border-box")
-                                }
-                            })
-                        }
-                        Span({
+                } else {
+                    val spinColor = POLL_COLORS[pollCycle % POLL_COLORS.size]
+                    key(pollCycle) {
+                        Div({
                             style {
-                                fontSize(11.px)
-                                color(Color(Colors.textSecondary))
-                                property("font-weight", "500")
+                                width(12.px)
+                                height(12.px)
+                                borderRadius(50.percent)
+                                property("border", "2px solid ${Colors.border}")
+                                property("border-top-color", spinColor)
+                                property("animation", "pp-poll-spin ${pollIntervalMs}ms linear")
+                                property("box-sizing", "border-box")
+                                property("transition", "border-top-color 0.3s ease")
                             }
-                        }) { Text("polling") }
+                        })
                     }
                 }
-                Span({
-                    style {
-                        backgroundColor(Color(Colors.surfaceAlt))
-                        padding(4.px, 10.px)
-                        borderRadius(6.px)
-                        fontSize(13.px)
-                        property("font-weight", "600")
-                        color(Color(Colors.textSecondary))
-                        property("letter-spacing", "0.05em")
-                    }
-                }) { Text("Room: $code") }
-                // Copy room code button
+
+                // Room code badge with integrated copy button
                 Button({
                     onClick {
                         scope.launch {
@@ -300,19 +190,33 @@ fun RoomScreen(
                             } catch (_: Exception) {}
                         }
                     }
-                    attr("title", if (copied) "Copied!" else "Copy room code")
+                    attr("title", if (copied) "Copied!" else "Click to copy room code")
                     style {
-                        background("transparent")
-                        property("border", "none")
+                        display(DisplayStyle.Flex)
+                        alignItems(AlignItems.Center)
+                        gap(6.px)
+                        backgroundColor(Color(Colors.surfaceAlt))
+                        padding(4.px, 10.px)
+                        borderRadius(6.px)
+                        fontSize(13.px)
+                        property("font-weight", "600")
                         color(Color(if (copied) Colors.success else Colors.textSecondary))
+                        property("letter-spacing", "0.05em")
                         cursor("pointer")
-                        fontSize(15.px)
-                        padding(4.px, 6.px)
-                        borderRadius(4.px)
-                        property("transition", "color 0.15s ease")
-                        property("line-height", "1")
+                        property("border", "1px solid ${if (copied) Colors.success else Colors.border}")
+                        property("transition", "color 0.2s ease, border-color 0.2s ease")
+                        property("line-height", "1.4")
                     }
-                }) { Text(if (copied) "✓" else "⎘") }
+                }) {
+                    Text(code)
+                    Span({
+                        style {
+                            fontSize(11.px)
+                            property("opacity", "0.7")
+                        }
+                    }) { Text(if (copied) " ✓ copied" else " ⎘ copy") }
+                }
+
                 Button({
                     onClick { onLeave() }
                     style {
@@ -326,7 +230,7 @@ fun RoomScreen(
             }
         }
 
-        // Action loading bar — slides across while waiting for state to update
+        // Action loading bar
         if (pendingAction) {
             Div({
                 style {
@@ -410,7 +314,6 @@ fun RoomScreen(
                         Text(if (state.votesRevealed) "Results" else "Participants (${state.participants.size})")
                     }
 
-                    // key() forces DOM recreation on state flip → CSS animation replays
                     key(state.votesRevealed) {
                         Div({
                             style {
@@ -454,7 +357,7 @@ fun RoomScreen(
                     }
                 }
 
-                // Voting controls — conditionally rendered, so entrance animation plays on reset
+                // Voting controls
                 if (!state.votesRevealed) {
                     val quickVotes = state.votingScale
                         .split(",")

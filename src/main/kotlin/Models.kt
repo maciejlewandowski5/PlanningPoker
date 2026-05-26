@@ -3,7 +3,7 @@ package com.example
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateRoomRequest(val votingScale: String = "1,2,3,5,8,13,21,40,100,?")
+data class CreateRoomRequest(val votingScale: String = "0,0.25,0.5,1,1.5,2,3,4,5,6,7,10,100,?")
 
 @Serializable
 data class CreateRoomResponse(val roomId: String, val code: String)
@@ -29,7 +29,7 @@ data class RoomState(
     val code: String,
     val votesRevealed: Boolean,
     val participants: List<ParticipantState>,
-    val votingScale: String = "1,2,3,5,8,13,21,40,100,?"
+    val votingScale: String = "0,0.25,0.5,1,1.5,2,3,4,5,6,7,10,100,?"
 )
 
 @Serializable
