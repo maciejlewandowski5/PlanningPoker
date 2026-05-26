@@ -56,10 +56,6 @@ fun RoomScreen(
                 0%   { transform: rotate(0deg);   }
                 100% { transform: rotate(360deg); }
             }
-            @keyframes pp-poll-glow {
-                0%, 100% { opacity: 0.4; transform: scale(1);    }
-                50%      { opacity: 1;   transform: scale(1.15); }
-            }
             @keyframes pp-loading-slide {
                 0%   { left: -35%; width: 35%; }
                 60%  { left: 60%;  width: 35%; }
@@ -179,7 +175,6 @@ fun RoomScreen(
                         Text("Connecting…")
                     }
                 } else {
-                    // Polling indicator — spinner with glow + label
                     val spinColor = POLL_COLORS[pollCycle % POLL_COLORS.size]
                     Div({
                         style {
@@ -188,46 +183,18 @@ fun RoomScreen(
                             gap(6.px)
                         }
                     }) {
-                        // Outer glow ring + inner spinner
-                        Div({
-                            style {
-                                width(22.px)
-                                height(22.px)
-                                property("position", "relative")
-                                display(DisplayStyle.Flex)
-                                alignItems(AlignItems.Center)
-                                justifyContent(JustifyContent.Center)
-                            }
-                        }) {
-                            // Glow ring (pulsing behind the spinner)
-                            key(pollCycle) {
-                                Div({
-                                    style {
-                                        property("position", "absolute")
-                                        property("inset", "0")
-                                        borderRadius(50.percent)
-                                        property("background", spinColor)
-                                        property("opacity", "0.3")
-                                        property("animation", "pp-poll-glow ${pollIntervalMs}ms ease-in-out")
-                                        property("filter", "blur(3px)")
-                                    }
-                                })
-                            }
-                            // Spinner ring
-                            key(pollCycle) {
-                                Div({
-                                    style {
-                                        width(18.px)
-                                        height(18.px)
-                                        borderRadius(50.percent)
-                                        property("border", "2.5px solid ${Colors.border}")
-                                        property("border-top-color", spinColor)
-                                        property("border-right-color", spinColor)
-                                        property("animation", "pp-poll-spin ${pollIntervalMs}ms cubic-bezier(0.4, 0, 0.2, 1)")
-                                        property("box-sizing", "border-box")
-                                    }
-                                })
-                            }
+                        key(pollCycle) {
+                            Div({
+                                style {
+                                    width(18.px)
+                                    height(18.px)
+                                    borderRadius(50.percent)
+                                    property("border", "2.5px solid ${Colors.border}")
+                                    property("border-top-color", spinColor)
+                                    property("animation", "pp-poll-spin ${pollIntervalMs}ms linear")
+                                    property("box-sizing", "border-box")
+                                }
+                            })
                         }
                         Span({
                             style {
