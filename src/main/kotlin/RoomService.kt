@@ -3,6 +3,8 @@ package com.example
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+private val broadcastJson = Json { encodeDefaults = true }
+
 class RoomService(
     private val repo: RoomRepository,
     private val registry: SessionRegistry
@@ -14,7 +16,7 @@ class RoomService(
 
     suspend fun vote(roomId: String, participantId: String, value: String) {
         repo.upsertVote(participantId, value)
-        registry.broadcast(roomId, Json.encodeToString(VotedDelta(participantId = participantId)))
+        registry.broadcast(roomId, broadcastJson.encodeToString(VotedDelta(participantId = participantId)))
     }
 
     suspend fun reveal(roomId: String) {
@@ -34,6 +36,6 @@ class RoomService(
 
     suspend fun broadcastState(roomId: String) {
         val state = repo.getRoomState(roomId) ?: return
-        registry.broadcast(roomId, Json.encodeToString(state))
+        registry.broadcast(roomId, broadcastJson.encodeToString(state))
     }
 }
